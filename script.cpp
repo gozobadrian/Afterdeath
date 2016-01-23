@@ -4,7 +4,7 @@
 			(C) Alexander Blade 2015
 */
 
-///MOD BY YUNoCake
+///Mod by YUNoCake
 
 #include "script.h"
 
@@ -18,66 +18,26 @@ bool get_key_pressed(int nVirtKey)
 	return (GetAsyncKeyState(nVirtKey) & 0x8000) != 0;
 }
 
-DWORD trainerResetTime = 0;
-
-bool mod_switch_pressed()
-{
-	return (GetTickCount() > trainerResetTime + 1000) && get_key_pressed(VK_NUMLOCK);
-}
-
-void reset_mod_switch()
-{
-	trainerResetTime = GetTickCount();
-}
-
-std::string statusText;
-DWORD statusTextDrawTicksMax;
-bool statusTextGxtEntry;
-
-void update_status_text()
-{
-	if (GetTickCount() < statusTextDrawTicksMax)
-	{
-		UI::SET_TEXT_FONT(0);
-		UI::SET_TEXT_SCALE(0.55, 0.65);
-		UI::SET_TEXT_COLOUR(10, 152, 12, 255);
-		UI::SET_TEXT_WRAP(0.0, 1.0);
-		UI::SET_TEXT_CENTRE(1);
-		UI::SET_TEXT_DROPSHADOW(0, 0, 0, 0, 0);
-		UI::SET_TEXT_EDGE(1, 0, 0, 0, 205);
-		if (statusTextGxtEntry)
-		{
-			UI::_SET_TEXT_ENTRY((char *)statusText.c_str());
-		} else
-		{
-			UI::_SET_TEXT_ENTRY("STRING");
-			UI::_ADD_TEXT_COMPONENT_STRING((char *)statusText.c_str());
-		}
-		UI::_DRAW_TEXT(0.1, 0.3);
-	}
-}
-
-void set_status_text(std::string str, DWORD time = 2500, bool isGxtEntry = false)
-{
-	statusText = str;
-	statusTextDrawTicksMax = GetTickCount() + time;
-	statusTextGxtEntry = isGxtEntry;
-}
-
-bool modEnabled = true;
 bool skipDead = false;
-int key;
+bool skipArrest = false;
+int key, suicideKey;
 
 void readConfigFile()
 {
-	std::fstream configFile("Afterdeath.ini", std::ios_base::in);
-	configFile >> key;
+	std::ifstream file("Afterdeath.ini");
+	std::string temp;
+
+	std::getline(file, temp, ' ');
+	key = atoi(temp.c_str());
+	std::getline(file, temp);
+	suicideKey = atoi(temp.c_str());
 }
 
 void afterDeath()
 {
 	    Player player = PLAYER::PLAYER_ID();
 
+        //If player is dying
 		if (PLAYER::IS_PLAYER_DEAD(player) && get_key_pressed(key))
 		{
 			skipDead = true;
@@ -95,6 +55,32 @@ void afterDeath()
 		{
 			skipDead = false;
 		}
+
+		//If player is being arrested
+		if (PLAYER::IS_PLAYER_BEING_ARRESTED(player,false) && get_key_pressed(key))
+		{
+			skipArrest = true;
+			GAMEPLAY::_0x2C2B3493FBF51C71(false); //GAMEPLAY::_DISABLE_AUTOMATIC_RESPAWN
+			SCRIPT::SET_NO_LOADING_SCREEN(false);
+			CAM::DO_SCREEN_FADE_OUT(4000);
+		}
+		else if (PLAYER::IS_PLAYER_BEING_ARRESTED(player,false) && skipArrest == false)
+		{
+			GAMEPLAY::_0x2C2B3493FBF51C71(true); //GAMEPLAY::_DISABLE_AUTOMATIC_RESPAWN
+			SCRIPT::SET_NO_LOADING_SCREEN(true);
+			if (CAM::IS_SCREEN_FADING_OUT()) CAM::DO_SCREEN_FADE_IN(100);
+		}
+		else if (PLAYER::IS_PLAYER_BEING_ARRESTED(player, false) == false)
+		{
+			skipArrest = false;
+		}
+}
+
+void suicide()
+{
+	Player player = PLAYER::PLAYER_ID();
+	Ped playerPed = PLAYER::GET_PLAYER_PED(player);
+	PED::EXPLODE_PED_HEAD(playerPed, 0x5FC3C11);
 }
 
 void main()
@@ -102,19 +88,8 @@ void main()
 	readConfigFile();
 	while (true)
 	{
-		if (mod_switch_pressed())
-		{
-			reset_mod_switch();
-			DWORD time = GetTickCount() + 1000;
-
-			while (GetTickCount() < time)
-			{
-				update_status_text();
-				WAIT(0);
-			}
-			reset_mod_switch();
-		}
 		afterDeath();
+		if (get_key_pressed(suicideKey)) suicide();
 		WAIT(0);
 	}
 }
