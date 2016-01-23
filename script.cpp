@@ -8,6 +8,7 @@
 
 #include "script.h"
 
+#include <fstream>
 #include <string>
 #include <ctime>
 #include <Windows.h>
@@ -65,12 +66,19 @@ void set_status_text(std::string str, DWORD time = 2500, bool isGxtEntry = false
 
 bool modEnabled = true;
 bool skipDead = false;
+int key;
+
+void readConfigFile()
+{
+	std::fstream configFile("Afterdeath.ini", std::ios_base::in);
+	configFile >> key;
+}
 
 void afterDeath()
 {
 	    Player player = PLAYER::PLAYER_ID();
 
-		if (get_key_pressed(VK_RETURN))
+		if (PLAYER::IS_PLAYER_DEAD(player) && get_key_pressed(key))
 		{
 			skipDead = true;
 			GAMEPLAY::_0x2C2B3493FBF51C71(false); //GAMEPLAY::_DISABLE_AUTOMATIC_RESPAWN
@@ -91,6 +99,7 @@ void afterDeath()
 
 void main()
 {
+	readConfigFile();
 	while (true)
 	{
 		if (mod_switch_pressed())
