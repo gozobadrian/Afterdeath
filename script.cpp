@@ -7,7 +7,6 @@
 ///Mod by YUNoCake
 
 #include "script.h"
-
 #include <fstream>
 #include <string>
 #include <ctime>
@@ -20,7 +19,7 @@ bool get_key_pressed(int nVirtKey)
 
 bool skipDead = false;
 bool skipArrest = false;
-int key, suicideKey;
+int key,suicideKey;
 
 void readConfigFile()
 {
@@ -49,7 +48,7 @@ void afterDeath()
 		{
 			GAMEPLAY::_0x2C2B3493FBF51C71(true); //GAMEPLAY::_DISABLE_AUTOMATIC_RESPAWN
 			SCRIPT::SET_NO_LOADING_SCREEN(true);
-            if (CAM::IS_SCREEN_FADING_OUT()) CAM::DO_SCREEN_FADE_IN(100);
+            if (CAM::IS_SCREEN_FADED_OUT()) CAM::DO_SCREEN_FADE_IN(100);
 		}
 		else if (PLAYER::IS_PLAYER_DEAD(player) == false)
 		{
@@ -68,7 +67,7 @@ void afterDeath()
 		{
 			GAMEPLAY::_0x2C2B3493FBF51C71(true); //GAMEPLAY::_DISABLE_AUTOMATIC_RESPAWN
 			SCRIPT::SET_NO_LOADING_SCREEN(true);
-			if (CAM::IS_SCREEN_FADING_OUT()) CAM::DO_SCREEN_FADE_IN(100);
+			if (CAM::IS_SCREEN_FADED_OUT()) CAM::DO_SCREEN_FADE_IN(100);
 		}
 		else if (PLAYER::IS_PLAYER_BEING_ARRESTED(player, false) == false)
 		{
